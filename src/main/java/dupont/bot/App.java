@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -77,7 +78,18 @@ public class App
     {
         if ( Profondeur <= ProfondeurMax && !ListeSitesVisites.contains(Url)) {
             System.out.println("Exploration de >> "+ Url );
-            DownloadWebPage(Url);
+            /// Telechargement du site visiter
+            try {
+                URL url = new URL(Url);
+                String [] PartUrl = Url.split("/");
+                String [] PartUrl2 = PartUrl[PartUrl.length -1].split("\\.");
+                File destination = new File("D:\\Test\\"+ PartUrl2[0]+".html");
+
+                // Copy bytes from the URL to the destination file.
+                FileUtils.copyURLToFile(url, destination);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             /// Recuperer les urls
             Document doc = null;
             try {
@@ -89,13 +101,10 @@ public class App
                     UrlsNonVisiter.add(e.attr("href"));
                 }
                 System.out.println(UrlsNonVisiter);
-                ListeSitesVisites.add(Url);
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-
-
             /// Recuperer les emails
             Pattern p = Pattern.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+");
             Matcher matcher = p.matcher(doc.text());
@@ -103,6 +112,8 @@ public class App
             while (matcher.find()) {
                 emails.add(matcher.group());
             }
+            ListeSitesVisites.add(Url);
+
             /// Trier en ordre alphabetique la liste et elimine les emails duplices
             Set<String> hashSet = new LinkedHashSet<>(emails);
             ArrayList<String> email = new ArrayList(hashSet);
@@ -118,38 +129,6 @@ public class App
         }
 
 
-    }
-
-
-    public static void DownloadWebPage(String webpage) {
-        try {
-
-            // Create URL object
-            URL url = new URL(webpage);
-            BufferedReader readr =
-                    new BufferedReader(new InputStreamReader(url.openStream()));
-
-            // Enter filename in which you want to download
-            BufferedWriter writer =
-                    new BufferedWriter(new FileWriter("D:\\\\Test\\\\Download.html"));
-
-            // read each line from stream till end
-            String line;
-            while ((line = readr.readLine()) != null) {
-                writer.write(line);
-            }
-
-            readr.close();
-            writer.close();
-            System.out.println("Successfully Downloaded.");
-        }
-
-        // Exceptions
-        catch (MalformedURLException mue) {
-            System.out.println("Malformed URL Exception raised");
-        } catch (IOException ie) {
-            System.out.println("IOException raised");
-        }
     }
 
     public static boolean exists(String URLName){
