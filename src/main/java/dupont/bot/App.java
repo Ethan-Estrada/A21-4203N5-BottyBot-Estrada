@@ -12,6 +12,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.omg.CORBA.WStringSeqHelper;
+
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  * Hello world!
@@ -20,7 +24,8 @@ import org.jsoup.select.Elements;
 public class App 
 {
     public static List<String> ListeSitesVisites =  new ArrayList<String>();
-
+    public static List<String> UrlsNonVisiter = new ArrayList<String>();
+    public  static String Site="";
     public static  int ProfondeurMax;
 
 
@@ -38,7 +43,7 @@ public class App
                 System.out.println("La profondeur de : "+ProfondeurMax+" est valide !");
             }
 
-            ///Verifie URL, son format et  son existance
+            ///Verifie URL, son format et son existance
             String UrlDepart = args[1];
             UrlValidator urlValidator = new UrlValidator();
             if (urlValidator.isValid(UrlDepart) && exists(UrlDepart)) {
@@ -78,29 +83,22 @@ public class App
     {
         if ( Profondeur <= ProfondeurMax && !ListeSitesVisites.contains(Url)) {
             System.out.println("Exploration de >> "+ Url );
-            /// Telechargement du site visiter
-            try {
-                URL url = new URL(Url);
-                String [] PartUrl = Url.split("/");
-                String [] PartUrl2 = PartUrl[PartUrl.length -1].split("\\.");
-                File destination = new File("D:\\Test\\"+ PartUrl2[0]+".html");
 
-                // Copy bytes from the URL to the destination file.
-                FileUtils.copyURLToFile(url, destination);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            /// Telechargement du site visiter
+            DownloadWebPage(Url);
+
             /// Recuperer les urls
             Document doc = null;
             try {
                 doc = Jsoup.connect(Url).get();
-                List<String> UrlsNonVisiter = new ArrayList<String>();
                 Elements elements = doc.select("a[href]");
                 for (Element e : elements) {
 
                     UrlsNonVisiter.add(e.attr("href"));
                 }
-                System.out.println(UrlsNonVisiter);
+                System.out.println("Non visiter"+UrlsNonVisiter);
+                System.out.println(ListeSitesVisites);
+
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -112,17 +110,37 @@ public class App
             while (matcher.find()) {
                 emails.add(matcher.group());
             }
-            ListeSitesVisites.add(Url);
-
             /// Trier en ordre alphabetique la liste et elimine les emails duplices
             Set<String> hashSet = new LinkedHashSet<>(emails);
-            ArrayList<String> email = new ArrayList(hashSet);
-            Collections.sort(email);
+            ArrayList<String> ListEmail = new ArrayList(hashSet);
+            Collections.sort(ListEmail);
             System.out.println();
-            System.out.println("Nombre de courriels extraits (en ordre alphabetique) : " + email.size());
-            for (int i = 0; i < email.size(); i++) {
-                System.out.print("      " + email.get(i));
+            System.out.println("Nombre de courriels extraits (en ordre alphabetique) : " + ListEmail.size());
+            for (int i = 0; i < ListEmail.size(); i++) {
+                System.out.print("      " + ListEmail.get(i));
                 System.out.println();
+            }
+
+            /// Condition de recursion
+            for (String Urls: UrlsNonVisiter) {
+                if(!Urls.contains("/^(?:([A-Za-z]+):)?(\\/{0,3})([0-9.\\-A-Za-z]+)\n" +
+                        "(?::(\\d+))?(?:\\/([^?#]*))?(?:\\?([^#]*))?(?:#(.*))?$/"))
+                {
+                    List<String> st =  new ArrayList<String>();
+                    st.add(Site + Urls);
+
+                    Parcourir(st.get(0),Profondeur+1);
+                    ListeSitesVisites.add(st.get(0));
+                    UrlsNonVisiter.remove(Urls);
+                    st.clear();
+                }
+                else{
+                    exists(Urls);
+                    Parcourir(Urls,Profondeur+1);
+                    ListeSitesVisites.add(Urls);
+                    UrlsNonVisiter.remove(Urls);
+                }
+
             }
 
 
@@ -140,8 +158,49 @@ public class App
             return (con.getResponseCode() == HttpURLConnection.HTTP_OK);
         }
         catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("sa marche po");
             return false;
+        }
+
+
+    }
+
+    public static void DownloadWebPage(String Url) {
+        try {
+
+            String [] PartUrl = Url.split("/");
+            String [] PartUrl2 = PartUrl[PartUrl.length -1].split("\\.");
+            for(int i=0; i < PartUrl.length -1;i++)
+            {
+                Site += PartUrl[i]+"/";
+            }
+
+            // Create URL object
+            URL url = new URL(Url);
+            BufferedReader readr = new BufferedReader(new InputStreamReader(url.openStream()));
+            // Enter filename in which you want to download
+            BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\Test\\"+PartUrl2[0]+".html"));
+
+            // read each line from stream till end
+            String line;
+            while ((line = readr.readLine()) != null) {
+                Pattern p = Pattern.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+");
+                Matcher matcher = p.matcher(line);
+
+                line = matcher.replaceAll("LOLOLOL@HACKERMAN.EZ");
+                writer.write(line);
+            }
+
+            readr.close();
+            writer.close();
+            System.out.println("Successfully Downloaded.");
+        }
+
+        // Exceptions
+        catch (MalformedURLException mue) {
+            System.out.println("Malformed URL Exception raised");
+        } catch (IOException ie) {
+            System.out.println("IOException raised");
         }
     }
 }
