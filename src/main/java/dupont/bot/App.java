@@ -196,11 +196,11 @@ public class App
             writer.close();
         }
 
-        // Exceptions
+        // Exceptions global du code
         catch (MalformedURLException mue) {
-            System.out.println("Url malformer");
+            System.out.println("Url mal formée :: " +Url);
         } catch (IOException ie) {
-            System.out.println("IOException");
+            System.out.println("Page inaccessible :: "+Url);
         }
     }
 }
