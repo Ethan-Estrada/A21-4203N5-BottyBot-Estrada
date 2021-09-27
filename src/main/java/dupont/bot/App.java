@@ -25,6 +25,7 @@ public class App
 {
     public static List<String> ListeSitesVisites =  new ArrayList<String>();
     public static List<String> UrlsNonVisiter = new ArrayList<String>();
+    public static List<String>  ListeEmailFinale = new ArrayList<String>();
     public  static String Site="";
     public static  int ProfondeurMax;
 
@@ -93,16 +94,15 @@ public class App
                 doc = Jsoup.connect(Url).get();
                 Elements elements = doc.select("a[href]");
                 for (Element e : elements) {
-
                     UrlsNonVisiter.add(e.attr("href"));
                 }
                 System.out.println("Non visiter"+UrlsNonVisiter);
-                System.out.println(ListeSitesVisites);
-
+                System.out.println("visiter"+ListeSitesVisites);
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
             /// Recuperer les emails
             Pattern p = Pattern.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+");
             Matcher matcher = p.matcher(doc.text());
@@ -110,17 +110,22 @@ public class App
             while (matcher.find()) {
                 emails.add(matcher.group());
             }
+
             /// Trier en ordre alphabetique la liste et elimine les emails duplices
             Set<String> hashSet = new LinkedHashSet<>(emails);
             ArrayList<String> ListEmail = new ArrayList(hashSet);
-            Collections.sort(ListEmail);
+            for (String email:ListEmail) {
+                ListeEmailFinale.add(email);
+            }
+            Collections.sort(ListeEmailFinale);
             System.out.println();
-            System.out.println("Nombre de courriels extraits (en ordre alphabetique) : " + ListEmail.size());
-            for (int i = 0; i < ListEmail.size(); i++) {
-                System.out.print("      " + ListEmail.get(i));
+            System.out.println("Nombre de courriels extraits (en ordre alphabetique) : " + ListeEmailFinale.size());
+            for (String email: ListeEmailFinale) {
+                System.out.print("      " + email);
                 System.out.println();
             }
 
+            int compteur=0;
             /// Condition de recursion
             for (String Urls: UrlsNonVisiter) {
                 if(!Urls.contains("/^(?:([A-Za-z]+):)?(\\/{0,3})([0-9.\\-A-Za-z]+)\n" +
@@ -140,15 +145,14 @@ public class App
                     ListeSitesVisites.add(Urls);
                     UrlsNonVisiter.remove(Urls);
                 }
-
+                compteur++;
+                System.out.println("Nombre de pages explorees : "+ compteur);
             }
 
-
         }
-
-
     }
 
+    /// Methode qui verifie si un url existe
     public static boolean exists(String URLName){
         try {
             HttpURLConnection.setFollowRedirects(false);
@@ -161,10 +165,8 @@ public class App
             System.out.println("sa marche po");
             return false;
         }
-
-
     }
-
+    /// Methode qui telecharge une page web
     public static void DownloadWebPage(String Url) {
         try {
 
@@ -190,17 +192,15 @@ public class App
                 line = matcher.replaceAll("LOLOLOL@HACKERMAN.EZ");
                 writer.write(line);
             }
-
             readr.close();
             writer.close();
-            System.out.println("Successfully Downloaded.");
         }
 
         // Exceptions
         catch (MalformedURLException mue) {
-            System.out.println("Malformed URL Exception raised");
+            System.out.println("Url malformer");
         } catch (IOException ie) {
-            System.out.println("IOException raised");
+            System.out.println("IOException");
         }
     }
 }
