@@ -69,7 +69,6 @@ public class App
 
             Parcourir(UrlDepart,0);
 
-
         }
         else
         {
@@ -77,7 +76,6 @@ public class App
                     "2.URL: Le lien de départ du bot ex: https://www.cegepmontpetit.ca/  et 3.REPERTOIRE : Indique l'emplacement dans votre système ou les fichiers téléchargés par le bot seront enregistrer " +
                     "ex: C:\\\\Users\\\\ . Un Exemple serait: 6 https://www.cegepmontpetit.ca/ C:\\\\Users\\\\ ");
         }
-
 
     }
     public  static  void Parcourir(String Url,int Profondeur)
@@ -91,18 +89,32 @@ public class App
             /// Recuperer les urls
             Document doc = null;
             try {
+                List<String> st =  new ArrayList<String>();
                 doc = Jsoup.connect(Url).get();
                 Elements elements = doc.select("a[href]");
                 for (Element e : elements) {
-                    UrlsNonVisiter.add(e.attr("href"));
+                    UrlsNonVisiter.add(e.attr("abs:href"));
                 }
-                System.out.println("Non visiter"+UrlsNonVisiter);
-                System.out.println("visiter"+ListeSitesVisites);
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
+            ListeSitesVisites.add(Url);
+            UrlsNonVisiter.remove(Url);
+            int compteur=0;
+            /// Condition de recursion
+                try{
+                    for (String UrlParcourir: UrlsNonVisiter) {
+                        Parcourir(UrlParcourir, Profondeur + 1);
+                        compteur++;
+                    }
+                }
+                catch ( ConcurrentModificationException e){
+                    System.out.println("sa morche po");
+                }
+
+            System.out.println("Nombre de pages explorees : "+ compteur);
             /// Recuperer les emails
             Pattern p = Pattern.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+");
             Matcher matcher = p.matcher(doc.text());
@@ -124,31 +136,6 @@ public class App
                 System.out.print("      " + email);
                 System.out.println();
             }
-
-            int compteur=0;
-            /// Condition de recursion
-            for (String Urls: UrlsNonVisiter) {
-                if(!Urls.contains("/^(?:([A-Za-z]+):)?(\\/{0,3})([0-9.\\-A-Za-z]+)\n" +
-                        "(?::(\\d+))?(?:\\/([^?#]*))?(?:\\?([^#]*))?(?:#(.*))?$/"))
-                {
-                    List<String> st =  new ArrayList<String>();
-                    st.add(Site + Urls);
-
-                    Parcourir(st.get(0),Profondeur+1);
-                    ListeSitesVisites.add(st.get(0));
-                    UrlsNonVisiter.remove(Urls);
-                    st.clear();
-                }
-                else{
-                    exists(Urls);
-                    Parcourir(Urls,Profondeur+1);
-                    ListeSitesVisites.add(Urls);
-                    UrlsNonVisiter.remove(Urls);
-                }
-                compteur++;
-                System.out.println("Nombre de pages explorees : "+ compteur);
-            }
-
         }
     }
 
@@ -162,7 +149,7 @@ public class App
             return (con.getResponseCode() == HttpURLConnection.HTTP_OK);
         }
         catch (Exception e) {
-            System.out.println("sa marche po");
+            System.out.println("Page inaccessible << "+URLName);
             return false;
         }
     }
@@ -198,9 +185,9 @@ public class App
 
         // Exceptions global du code
         catch (MalformedURLException mue) {
-            System.out.println("Url mal formée :: " +Url);
+            System.out.println("Url mal formée << " +Url);
         } catch (IOException ie) {
-            System.out.println("Page inaccessible :: "+Url);
+            System.out.println("Page inaccessible << "+Url);
         }
     }
 }
