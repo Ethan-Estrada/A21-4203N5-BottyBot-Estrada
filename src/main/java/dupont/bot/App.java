@@ -68,6 +68,7 @@ public class App
             System.out.println("Tout va bien, explorons !");
 
             Parcourir(UrlDepart,0);
+            PrintEmails();
 
         }
         else
@@ -105,37 +106,27 @@ public class App
             int compteur=0;
             /// Condition de recursion
                 try{
+                    // while
                     for (String UrlParcourir: UrlsNonVisiter) {
                         Parcourir(UrlParcourir, Profondeur + 1);
                         compteur++;
                     }
+                    System.out.println("Nombre de pages explorees : "+ compteur);
                 }
                 catch ( ConcurrentModificationException e){
-                    System.out.println("sa morche po");
+                   e.printStackTrace();
                 }
-
-            System.out.println("Nombre de pages explorees : "+ compteur);
             /// Recuperer les emails
             Pattern p = Pattern.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+");
             Matcher matcher = p.matcher(doc.text());
-            List<String> emails = new ArrayList<String>();
             while (matcher.find()) {
-                emails.add(matcher.group());
+                ListeEmailFinale.add(matcher.group());
             }
-
             /// Trier en ordre alphabetique la liste et elimine les emails duplices
-            Set<String> hashSet = new LinkedHashSet<>(emails);
-            ArrayList<String> ListEmail = new ArrayList(hashSet);
-            for (String email:ListEmail) {
-                ListeEmailFinale.add(email);
-            }
+            Set<String> hashSet = new HashSet<>(ListeEmailFinale);
+            ListeEmailFinale.clear();
+            ListeEmailFinale.addAll(hashSet);
             Collections.sort(ListeEmailFinale);
-            System.out.println();
-            System.out.println("Nombre de courriels extraits (en ordre alphabetique) : " + ListeEmailFinale.size());
-            for (String email: ListeEmailFinale) {
-                System.out.print("      " + email);
-                System.out.println();
-            }
         }
     }
 
@@ -188,6 +179,15 @@ public class App
             System.out.println("Url mal formée << " +Url);
         } catch (IOException ie) {
             System.out.println("Page inaccessible << "+Url);
+        }
+    }
+    public static void PrintEmails(){
+        /// Imprime les emails recuperer
+        System.out.println();
+        System.out.println("Nombre de courriels extraits (en ordre alphabetique) : " + ListeEmailFinale.size());
+        for (String email: ListeEmailFinale) {
+            System.out.print("      " + email);
+            System.out.println();
         }
     }
 }
