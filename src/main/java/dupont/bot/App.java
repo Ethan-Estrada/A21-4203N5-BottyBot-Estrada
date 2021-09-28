@@ -1,32 +1,23 @@
 package dupont.bot;
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.omg.CORBA.WStringSeqHelper;
-
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-
 /**
  * Hello world!
  *
  */
 public class App 
 {
-    public static List<String> ListeSitesVisites =  new ArrayList<String>();
-    public static List<String> UrlsNonVisiter = new ArrayList<String>();
-    public static List<String>  ListeEmailFinale = new ArrayList<String>();
-    public  static String Site="";
+    public static List<String> ListeSitesVisites =  new ArrayList<>();
+    public static List<String> ListeUrlsNonVisiter = new ArrayList<>();
+    public static List<String>  ListeEmailFinale = new ArrayList<>();
     public static  int ProfondeurMax;
 
 
@@ -90,11 +81,10 @@ public class App
             /// Recuperer les urls
             Document doc = null;
             try {
-                List<String> st =  new ArrayList<String>();
                 doc = Jsoup.connect(Url).get();
                 Elements elements = doc.select("[href]");
                 for (Element e : elements) {
-                    UrlsNonVisiter.add(e.attr("abs:href"));
+                    ListeUrlsNonVisiter.add(e.attr("abs:href"));
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -106,7 +96,7 @@ public class App
             /// Condition de recursion
                 try{
                     // while est pas vide
-                    Iterator<String> iter = UrlsNonVisiter.iterator();
+                    Iterator<String> iter = ListeUrlsNonVisiter.iterator();
                     while (iter.hasNext()) {
                         String str = iter.next();
                         Parcourir(str, Profondeur + 1);
@@ -116,7 +106,7 @@ public class App
                     System.out.println("Nombre de pages explorees : "+ compteur);
                 }
                 catch ( ConcurrentModificationException e){
-
+                    e.printStackTrace();
                 }
 
             /// Recuperer les emails
