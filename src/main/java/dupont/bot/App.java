@@ -92,30 +92,33 @@ public class App
             try {
                 List<String> st =  new ArrayList<String>();
                 doc = Jsoup.connect(Url).get();
-                Elements elements = doc.select("a[href]");
+                Elements elements = doc.select("[href]");
                 for (Element e : elements) {
                     UrlsNonVisiter.add(e.attr("abs:href"));
                 }
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
             ListeSitesVisites.add(Url);
-            UrlsNonVisiter.remove(Url);
+
             int compteur=0;
             /// Condition de recursion
                 try{
-                    // while
-                    for (String UrlParcourir: UrlsNonVisiter) {
-                        Parcourir(UrlParcourir, Profondeur + 1);
+                    // while est pas vide
+                    Iterator<String> iter = UrlsNonVisiter.iterator();
+                    while (iter.hasNext()) {
+                        String str = iter.next();
+                        Parcourir(str, Profondeur + 1);
+                        iter.remove();
                         compteur++;
                     }
                     System.out.println("Nombre de pages explorees : "+ compteur);
                 }
                 catch ( ConcurrentModificationException e){
-                   e.printStackTrace();
+
                 }
+
             /// Recuperer les emails
             Pattern p = Pattern.compile("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+");
             Matcher matcher = p.matcher(doc.text());
@@ -143,18 +146,13 @@ public class App
             System.out.println("Page inaccessible << "+URLName);
             return false;
         }
+
     }
     /// Methode qui telecharge une page web
     public static void DownloadWebPage(String Url) {
         try {
-
             String [] PartUrl = Url.split("/");
             String [] PartUrl2 = PartUrl[PartUrl.length -1].split("\\.");
-            for(int i=0; i < PartUrl.length -1;i++)
-            {
-                Site += PartUrl[i]+"/";
-            }
-
             // Create URL object
             URL url = new URL(Url);
             BufferedReader readr = new BufferedReader(new InputStreamReader(url.openStream()));
